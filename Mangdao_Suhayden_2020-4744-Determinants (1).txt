@@ -1,0 +1,393 @@
+//Suhayden S. Mangdao
+//ITE114-AAA
+//MACHINE PROBLEM 3: DETERMINANTS
+
+/*
+ 
+PROGRAM DESCRIPTION: 
+
+This program calculates the determinant of an 𝑛×𝑛
+matrix based on user input, involving steps like matrix creation, element input, creating a new matrix
+and cofactor expansion.
+
+*/
+import java.util.*;
+class Determinants{
+    static Matrix matrix;
+    static int determinant;
+    public static void main (String [] args){
+        matrix = enterElements();
+        determinant = recursiveDeterminant(matrix, 0, 0);
+        System.out.println("Matrix A: ");
+        matrix.displayMatrix();
+        while(true){
+            options();
+        }
+    }
+   
+    private static void options(){
+        System.out.println("-----------------------------------------");
+        System.out.println("Options:");
+        System.out.println("1. Display Matrix");
+        System.out.println("2. Display Determinant");
+        System.out.println("3. Step-by-step solution in getting the determinant");
+        System.out.println("4. Enter new Matrix");
+        System.out.println("5. Terminate Program");
+        System.out.println("-----------------------------------------");
+        System.out.print("Enter option: ");
+        int option = choiceInput(1,5);
+        switch(option){
+            case 1:
+                System.out.println("-----------------");
+                System.out.println("Matrix A: ");
+                matrix.displayMatrix();
+                //sleep(2);
+                break;
+            case 2:
+                System.out.println("-----------------");
+                System.out.println("The determinant of Matrix A");
+                //matrix.displayMatrix();
+                System.out.println("is " + determinant);
+                //sleep(2);
+                break;
+            case 3:
+                System.out.println("-----------------");
+                System.out.println("Matrix A: ");
+                matrix.displayMatrix();
+                recursiveDeterminant(matrix, 0, 65, 0);
+                System.out.println("-----------------");
+                System.out.println("Therefore the determinant of Matrix A");
+                matrix.displayMatrix();
+                System.out.println("= " + determinant);
+                //sleep(2);
+                break;
+            case 4:
+                System.out.println("-----------------");
+                matrix = enterElements();
+                determinant = recursiveDeterminant(matrix, 0, 0);
+                System.out.println("Matrix A: ");
+                matrix.displayMatrix();
+                //sleep(2);
+                break;
+            case 5:
+                System.out.println("-----------------");
+                System.out.println("Program Terminated");
+                System.out.println("-----------------");
+                System.exit(0);
+                break;
+        }
+    }
+    //method for trapping error for user input with lower and upper bounds
+    private static int choiceInput(int start, int end){
+        Scanner input = new Scanner(System.in);
+        int option;
+         while (true) {
+            try { //ensures it does not accept non-integer input handled by Try Catch
+                option = input.nextInt();
+                if(option < start) {
+                    System.out.print("Invalid Input. Please enter a larger number(" + start + "-" + end + "): ");
+                }else if(option > end){
+                    System.out.print("Invalid Input. Please enter a smaller number(" + start + "-" + end + "): ");
+                }else{
+                    break;
+                }
+            }catch (InputMismatchException e) {
+                System.out.print("Invalid input. Please enter an integer: ");
+                input.next(); // Clear the buffer
+            }
+        }
+        return option;
+    }
+   
+    //this will ask for the rows and columns of the matrix which must be n x n of n>1
+    // and ask to input the elements of the matrix and return the matrix.
+    static Matrix enterElements(){
+        Scanner input = new Scanner (System.in);
+        int rows = 0;
+        int columns = 0;
+        System.out.print("Enter number of rows: ");
+        rows = order();
+        System.out.print("Enter number of columns: ");
+        columns = order();
+        while(rows != columns){
+            System.out.println("Number of rows must be equal to number of columns.");
+            System.out.print("Re-enter number of columns: ");
+            columns = order();
+        }
+        Matrix matrix =  new Matrix(rows, columns);
+        matrix.inputElements("Matrix");
+        return matrix;
+    }
+   
+    //check order of the matrix must be only up to 10x10
+    static int order(){
+        Scanner input = new Scanner(System.in);
+        int order;
+         while (true) {
+            try { //ensures it does not accept non-integer input handled by Try Catch
+                order = input.nextInt();
+                if(order < 1) {
+                    System.out.print("Invalid Input. Please enter a larger number(1-10): ");
+                }else if(order > 10){
+                    System.out.print("Invalid Input. Please enter a smaller number(1-10): ");
+                }else{
+                    break;
+                }
+            }catch (InputMismatchException e) {
+                System.out.print("Invalid input. Please enter an integer: ");
+                input.next(); // Clear the buffer
+            }
+        }
+        return order;
+    }
+   
+    //this will store the elements of a co-factor
+    static int[] detElements(Matrix matrix, int column){
+        int counter = 0;
+        int [] elements = new int [(matrix.rows -1) * (matrix.rows -1)];
+        for(int i = 1; i < matrix.rows; i++){
+            for(int j = 0; j < matrix.columns; j++){
+                if(j != column ){
+                    elements[counter] = matrix.matrix[i][j];
+                    counter++;
+                }
+            }
+        }
+        return elements;
+    }
+    
+    //this will store the elements of the co-factor to a matrix
+    static Matrix storeDetElements(int [] elements){
+        int index = (int) Math.sqrt(elements.length+1);
+        Matrix matrix = new Matrix(index, index);
+        int counter = 0;
+        for(int i = 0; i < matrix.rows; i++){
+            for(int j = 0; j < matrix.columns; j++){
+                matrix.matrix[i][j] = elements[counter];
+                counter++;
+            }
+        }
+        return matrix;
+    }
+    
+    //this code will display the co-factors a matrix of a matrix of index > 2
+    static Matrix [] storeAllCoFactors(Matrix matrix){
+        if(matrix.rows < 3){
+            Matrix [] coFactors = new Matrix[1];
+            coFactors[0] = matrix;
+            return coFactors;
+        }else{
+            Matrix [] coFactors = new Matrix[matrix.rows];
+            for(int i = 0; i < matrix.columns; i++){
+                coFactors[i] = storeDetElements(detElements(matrix, i));
+            }
+            return coFactors;
+        }
+    }
+   
+    static int recursiveDeterminant(Matrix matrix, int total, int letter, int column) {
+        //a array of the values of the determinants that make up the matrix??
+        int [] subs = new int [matrix.rows];
+        String let = String.valueOf((char) letter);
+        String let1 = String.valueOf((char) (letter+1));
+        String let2 = String.valueOf((char) (letter+2));
+        // Check if the matrix is 2x2
+        if (matrix.rows == 2) {
+            // Calculate and print determinant for 2x2 matrix
+            int determinant = detTwoByTwo(matrix, letter, column);
+            return determinant;
+        } else {
+            // Calculate and display cofactors for the current matrix
+            Matrix[] coFactors = storeAllCoFactors(matrix);
+            if(letter == 65){
+                System.out.println("The co-factors of Matrix " + let + " are:");
+            }else{
+                System.out.println("The co-factors of Matrix " + let + dimension(0, column)+" are:");
+            }
+            for(int i = 0; i < coFactors.length; i++){
+                displayCoFactor(matrix, i, letter+1);
+            }
+            System.out.println("where:");
+            for(int i = 0; i < coFactors.length; i++){
+                System.out.println(let2 + dimension(0, i));
+                coFactors[i].displayMatrix();
+            }
+            for(int i = 0; i < coFactors.length; i++){
+                System.out.println("===");
+                System.out.println("For " + let1 + dimension(0, i));
+                if(coFactors[i].rows > 2){
+                    coFactors[i].displayMatrix();
+                }
+                // Recursively compute determinant for cofactor
+                int num = ((2+i)%2 == 0)? 1:-1;
+                int determinant = recursiveDeterminant(coFactors[i], 0, letter + 2, i);
+                int sub =  (matrix.matrix[0][i] * num * determinant);
+                subs[i] = sub;
+                total = total + sub;
+               
+                
+                System.out.println(let1 + dimension(0, i)
+                                    + " = " + "("+matrix.matrix[0][i]+")(-1"+exponent(0, i)+")det" + let2 + dimension(0, i) + " = "
+                                    + "(" + matrix.matrix[0][i] + ")(" + num + ")(" + determinant + ") = " + sub);
+            }
+        }
+        System.out.println("===");
+        if(letter == 65){
+            System.out.print("det" + let + " = ");
+        }else{
+            System.out.print("det" + let +dimension(0, column) +" = ");
+        }
+        for(int i = 0; i < subs.length; i++){
+            System.out.print(let1 + dimension(0,i));
+            if(i != subs.length-1){
+                System.out.print(" + ");
+            }
+        }
+        System.out.println();
+        System.out.print("        = ");
+         for(int i = 0; i < subs.length; i++){
+            System.out.print("("+subs[i]+")");
+            if(i != subs.length-1){
+                System.out.print(" + ");
+            }
+        }
+        System.out.println();
+        System.out.print("        = " + total);
+        System.out.println();
+        return total;
+    }
+    
+    static int recursiveDeterminant(Matrix matrix, int total, int column) {
+        // Check if the matrix is 2x2
+        if (matrix.rows == 2) {
+            // Calculate the eterminant for 2x2 matrix
+            int determinant = detTwoByTwo(matrix, column);
+            return determinant;
+        } else {
+            // Calculate cofactors for the current matrix
+            Matrix[] coFactors = storeAllCoFactors(matrix);
+           
+            for(int i = 0; i < coFactors.length; i++){
+                // Recursively compute determinant for cofactor
+                int num = ((2+i)%2 == 0)? 1:-1;
+                int determinant = recursiveDeterminant(coFactors[i], 0, i);
+                int sub =  (matrix.matrix[0][i] * num * determinant);
+                total = total + sub;
+            }
+        }
+        return total;
+    }
+   
+    //display a cofactor of a matrix
+    static void displayCoFactor(Matrix matrix, int column, int letter){
+        String let = String.valueOf((char) letter);
+        String let1 = String.valueOf((char) (letter+1));
+        int num = matrix.matrix[0][column];
+        System.out.println(let + dimension(0, column) + " = (" + num +")(-1" + exponent(0, column) +
+                            ")det"+let1+dimension(0, column));
+    }
+   
+    static char subscript(int number){
+        char[] variable = {'\u2081', '\u2082', '\u2083', '\u2084', '\u2085', '\u2086', '\u2087', '\u2088', '\u2089', '\u2080', '\u2081', '\u2081', '\u2081'};
+        return variable[number];
+    }
+    static String dimension(int row, int column){
+        return "\u208D" + subscript(row) + "," + subscript(column) + "\u208E";
+    }
+    static String exponent(int row, int column){
+        return "\u207D" + superscript(row) + "\u207A" + superscript(column) + "\u207E";
+    }
+    static char superscript(int number){
+        char [] variable = {'\u00B9', '\u00B2', '\u00B3', '\u2074', '\u2075', '\u2076', '\u2077', '\u2078', '\u2079','\u00B9'+ '\u2070'};
+        return variable[number];
+    }
+    
+    //return the determinant of a 2x2 matrix
+    static int detTwoByTwo(Matrix matrix, int letter, int column){
+        String let = String.valueOf((char) letter);
+        int result = (matrix.matrix[0][0] * matrix.matrix[1][1]) - (matrix.matrix[0][1] * matrix.matrix[1][0]);
+        System.out.println(let+dimension(0, column)+":");
+        matrix.displayMatrix();
+        System.out.println("det"+let+ dimension(0, column)+" = (" +  matrix.matrix[0][0] + ")(" + matrix.matrix[1][1] + ") - (" + matrix.matrix[0][1] + ")(" + matrix.matrix[1][0] + ") = ("
+                            + (matrix.matrix[0][0] * matrix.matrix[1][1]) + ") - (" + (matrix.matrix[0][1] * matrix.matrix[1][0]) + ") = " + result);
+        return result;
+    }
+    
+    static int detTwoByTwo(Matrix matrix, int column){
+        int result = (matrix.matrix[0][0] * matrix.matrix[1][1]) - (matrix.matrix[0][1] * matrix.matrix[1][0]);
+        return result;
+    }
+   
+    static void sleep(int time){
+        try{
+            Thread.sleep(time*1000);
+        }catch (InterruptedException ie){
+            ie.printStackTrace();
+        }
+    }
+}
+
+class Matrix{
+    int rows = 0;
+    int columns = 0;
+    int [][] matrix;
+    Matrix(int rows, int columns){
+        this.rows = rows;
+        this.columns = columns;
+        matrix = new int [rows][columns];
+    }
+   
+    void inputElements(String matrixName){
+        for(int i = 0; i < rows; i++){
+            for(int j = 0; j < columns; j++){
+                System.out.print(matrixName + " [" + (i+1) + "][" + (j+1) + "]: ");
+                matrix[i][j] = element();
+            }
+        }
+    }
+    
+    //error trapping for any elements that must not be an element of a matrx
+    int element(){
+        Scanner input = new Scanner(System.in);
+        int element;
+         while (true) {
+            try { //ensures it does not accept non-integer input handled by Try Catch
+                element = input.nextInt();
+                break;
+            }catch (InputMismatchException e) {
+                System.out.print("Invalid input. Please enter an integer: ");
+                input.next(); // Clear the buffer
+            }
+        }
+        return element;
+    }
+    
+    void displayMatrix(){
+        //System.out.println(varName + "("+rows+" x "+columns+")");
+        int maxDigit = numberOfDigits();
+         for(int i = 0; i < rows; i++){
+            System.out.print("│");
+            for(int j = 0; j < columns; j++){
+                System.out.printf("%" + (maxDigit + 1) + "d", matrix[i][j]);
+                //System.out.printf("%-" + (maxDigit + 1) + "d", matrix[i][j]);
+            }
+            System.out.println("│");
+        }
+    }
+    
+    int numberOfDigits(){
+        String number;
+        int highestLength = 0;
+        for(int i = 0; i < rows; i++){
+            for(int j = 0; j < columns; j++){
+                number = String.valueOf(matrix[i][j]);
+                if(number.length() > highestLength){
+                    highestLength = number.length();
+                }
+            }
+        }
+        return highestLength;
+    }
+}
+
+
